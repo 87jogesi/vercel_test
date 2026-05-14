@@ -1,0 +1,15 @@
+{
+  "name": "survey-test",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.1"
+  },
+  "devDependencies": {
+    "vercel": "^48.8.2"
+  }
+}

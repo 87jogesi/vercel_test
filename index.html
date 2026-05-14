@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>테스트 설문 페이지</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family:
+          Inter, Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: #f6f7f9;
+        color: #1f2937;
+      }
+
+      .page {
+        width: min(100%, 720px);
+        margin: 0 auto;
+        padding: 48px 20px;
+      }
+
+      .survey {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 28px;
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(28px, 5vw, 42px);
+        line-height: 1.12;
+        letter-spacing: 0;
+      }
+
+      .intro {
+        margin: 0 0 28px;
+        color: #667085;
+        font-size: 16px;
+      }
+
+      .field {
+        display: grid;
+        gap: 10px;
+        margin-bottom: 24px;
+      }
+
+      label,
+      legend {
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        min-height: 46px;
+        border: 1px solid #cfd5df;
+        border-radius: 6px;
+        padding: 0 14px;
+        font: inherit;
+        background: #ffffff;
+      }
+
+      input[type="text"]:focus {
+        border-color: #2563eb;
+        outline: 3px solid rgba(37, 99, 235, 0.16);
+      }
+
+      fieldset {
+        margin: 0 0 24px;
+        padding: 0;
+        border: 0;
+      }
+
+      .number-grid {
+        display: grid;
+        grid-template-columns: repeat(10, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .number-option {
+        position: relative;
+      }
+
+      .number-option input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .number-option span {
+        display: grid;
+        place-items: center;
+        min-height: 44px;
+        border: 1px solid #cfd5df;
+        border-radius: 6px;
+        background: #ffffff;
+        cursor: pointer;
+        font-weight: 700;
+        transition:
+          border-color 160ms ease,
+          background 160ms ease,
+          color 160ms ease;
+      }
+
+      .number-option input:checked + span {
+        border-color: #2563eb;
+        background: #2563eb;
+        color: #ffffff;
+      }
+
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 28px;
+      }
+
+      button {
+        min-height: 46px;
+        border: 0;
+        border-radius: 6px;
+        padding: 0 18px;
+        color: #ffffff;
+        background: #111827;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #374151;
+      }
+
+      button:disabled {
+        cursor: progress;
+        opacity: 0.72;
+      }
+
+      .hint {
+        color: #667085;
+        font-size: 14px;
+      }
+
+      .result {
+        margin-top: 22px;
+        padding: 16px;
+        border: 1px solid #bbf7d0;
+        border-radius: 8px;
+        background: #f0fdf4;
+      }
+
+      .result h2 {
+        margin: 0 0 8px;
+        font-size: 16px;
+      }
+
+      .result p {
+        margin: 4px 0;
+      }
+
+      @media (max-width: 560px) {
+        .page {
+          padding: 24px 14px;
+        }
+
+        .survey {
+          padding: 20px;
+        }
+
+        .number-grid {
+          grid-template-columns: repeat(5, minmax(0, 1fr));
+        }
+
+        .actions {
+          align-items: stretch;
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/babel">
+      const numbers = Array.from({ length: 10 }, (_, index) => index);
+
+      function App() {
+        const [form, setForm] = React.useState({
+          name: "",
+          favoriteNumber: "",
+          location: "",
+        });
+        const [submitted, setSubmitted] = React.useState(null);
+        const [status, setStatus] = React.useState("idle");
+        const [message, setMessage] = React.useState("");
+
+        function updateField(event) {
+          const { name, value } = event.target;
+          setForm((current) => ({ ...current, [name]: value }));
+        }
+
+        async function handleSubmit(event) {
+          event.preventDefault();
+          setStatus("saving");
+          setMessage("");
+
+          try {
+            const response = await fetch("/api/submit", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(form),
+            });
+            const data = await response.json();
+
+            if (!response.ok) {
+              throw new Error(data.error || "응답 저장에 실패했습니다.");
+            }
+
+            setSubmitted(form);
+            setStatus("saved");
+            setMessage("응답이 저장되었습니다.");
+          } catch (error) {
+            setStatus("error");
+            setMessage(
+              error.message ||
+                "저장 중 문제가 생겼습니다. 잠시 뒤 다시 시도해 주세요.",
+            );
+          }
+        }
+
+        return (
+          <main className="page">
+            <form className="survey" onSubmit={handleSubmit}>
+              <h1>테스트 설문 페이지입니다</h1>
+              <p className="intro">아래 항목을 입력한 뒤 제출해 주세요.</p>
+
+              <div className="field">
+                <label htmlFor="name">이름을 적어주세요.</label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  value={form.name}
+                  onChange={updateField}
+                  placeholder="예: 홍길동"
+                  required
+                />
+              </div>
+
+              <fieldset>
+                <legend>0~9에서 좋아하는 숫자 눌러주세요.</legend>
+                <div className="number-grid">
+                  {numbers.map((number) => (
+                    <label className="number-option" key={number}>
+                      <input
+                        type="radio"
+                        name="favoriteNumber"
+                        value={String(number)}
+                        checked={form.favoriteNumber === String(number)}
+                        onChange={updateField}
+                        required
+                      />
+                      <span>{number}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+
+              <div className="field">
+                <label htmlFor="location">어디사는지 적어주세요.</label>
+                <input
+                  id="location"
+                  name="location"
+                  type="text"
+                  value={form.location}
+                  onChange={updateField}
+                  placeholder="예: 서울시 강남구"
+                  required
+                />
+              </div>
+
+              <div className="actions">
+                <button type="submit" disabled={status === "saving"}>
+                  {status === "saving" ? "저장 중..." : "제출하기"}
+                </button>
+                <span className="hint">
+                  {message || "제출하면 서버에 응답이 저장됩니다."}
+                </span>
+              </div>
+
+              {submitted && (
+                <section className="result" aria-live="polite">
+                  <h2>제출된 테스트 응답</h2>
+                  <p>이름: {submitted.name}</p>
+                  <p>좋아하는 숫자: {submitted.favoriteNumber}</p>
+                  <p>사는 곳: {submitted.location}</p>
+                </section>
+              )}
+            </form>
+          </main>
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    </script>
+  </body>
+</html>
