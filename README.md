@@ -38,6 +38,7 @@ git push -u origin main
 필요한 환경변수:
 
 - `DATABASE_URL`: Vercel Marketplace Postgres 연결 시 자동으로 주입됩니다.
+- `POSTGRES_URL`: 일부 Neon/Vercel 연결에서 함께 주입됩니다. 코드가 이 값도 사용할 수 있습니다.
 - `ADMIN_TOKEN`: 관리자 조회 API 보호용 비밀 문자열입니다.
 
 ## 응답 확인

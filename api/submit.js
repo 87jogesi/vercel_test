@@ -14,9 +14,11 @@ export default async function handler(request, response) {
     return response.status(405).json({ error: "POST 요청만 가능합니다." });
   }
 
-  if (!process.env.DATABASE_URL) {
+  const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
+  if (!databaseUrl) {
     return response.status(500).json({
-      error: "DATABASE_URL 환경변수가 설정되지 않았습니다.",
+      error: "DATABASE_URL 또는 POSTGRES_URL 환경변수가 설정되지 않았습니다.",
     });
   }
 
@@ -31,7 +33,7 @@ export default async function handler(request, response) {
     });
   }
 
-  const sql = neon(process.env.DATABASE_URL);
+  const sql = neon(databaseUrl);
 
   await sql`
     CREATE TABLE IF NOT EXISTS survey_responses (
